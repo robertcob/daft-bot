@@ -1,2 +1,2 @@
 # daft-bot
-The bot the housing crisis
+The bot to cure the housing crisis
