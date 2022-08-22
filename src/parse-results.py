@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+global CurrProperties
 class Property:
     def __init__(self, price, address, url, roomType) -> None:
         self.price = price
@@ -14,6 +15,7 @@ class PropertyParser:
         self.priceFrom = str(priceFrom)
         self.priceTo = str(priceTo)
         self.location = str(location)
+        self.newProperties = []
 
     # def pingDaft(self):
     #     pingURL = "https://www.daft.ie/sharing/{}?rentalPrice_from={}&rentalPrice_to={}&sort=publishDateDesc".format(self.location, self.priceFrom, self.priceTo)
@@ -46,13 +48,26 @@ class PropertyParser:
             html_doc = resp.content
             soup = BeautifulSoup(html_doc, 'html.parser')
             content = soup.find_all("a", href=True)
-            [print(link['href']) for link in content if re.match(propertysURLRegex, link['href'])]
+            diff = self.getDiff([link['href'] for link in content if re.match(propertysURLRegex, link['href'])])
+            if len(diff) > 0:
+                self.exportProperties(diff)
+        else:
+            print("bad daft url!")
 
     def getDiff(self, currPropertyURLs):
-        prevPropertURLs
+        prevPropertURLs = CurrProperties
+        CurrProperties = currPropertyURLs
         return prevPropertURLs - currPropertyURLs
 
     def exportProperties(self, newPropetyURLs):
+        # genericPropertyURL = "https://www.daft.ie{}".format()
+        for url in newPropetyURLs:
+            resp = requests.get("https://www.daft.ie{}".format(url))
+            if resp.status_code == 200:
+                ### TODO scrape page recursively for all required data
+                continue
+
+
 
         
 ### DRIVER CODE
