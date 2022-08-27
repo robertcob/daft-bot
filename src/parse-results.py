@@ -60,11 +60,27 @@ class PropertyParser:
         return prevPropertURLs - currPropertyURLs
 
     def exportProperties(self, newPropetyURLs):
-        # genericPropertyURL = "https://www.daft.ie{}".format()
+        priceRegex = re.compile("^TitleBlock__Price")
+        addressRegex = re.compile("^TitleBlock__Address")
+        roomInfoRegex = re.compile("^TitleBlock__CardInfo")
         for url in newPropetyURLs:
             resp = requests.get("https://www.daft.ie{}".format(url))
+            soup = BeautifulSoup(resp, 'html.parser')
             if resp.status_code == 200:
-                ### TODO scrape page recursively for all required data
+                priceDiv = soup.find("div", attrs={'class' : priceRegex})
+                roomInfoTag = soup.find("div", attrs={'class' : roomInfoRegex}).findChildren
+                for child in roomInfoTag:
+                    if child['data-testid'] == '':
+                        continue
+                    elif child['data-testid'] == 'beds':
+                        bedType = child.text
+                    elif child['data-testid'] == 'baths':
+                        bathType = child.text
+                    elif child['data-testid'] == 'property-type':
+                        propertyType = child.text
+
+                address = soup.find("h1", attrs={'class' : addressRegex}).text
+                price = priceDiv.findChild().text
                 continue
 
 
