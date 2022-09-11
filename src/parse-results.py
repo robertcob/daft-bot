@@ -1,3 +1,4 @@
+from tkinter import N
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -16,6 +17,9 @@ class Property:
         self.startDate = None
         self.description = None
         self.interval = None
+        self.bathroom = None
+        self.propertyType = None
+        self.bedrooms = None
     
     def setID(self, newID):
         self.id = newID
@@ -52,6 +56,15 @@ class Property:
     
     def setInterval(self, newPaymentInterval):
         self.interval = newPaymentInterval
+    
+    def setBathroom(self, newBathroomType):
+        self.bathroom = newBathroomType
+    
+    def setPropertyType(self, newPropertyType):
+        self.propertyType = newPropertyType
+    
+    def setNumBedrooms(self, newNumBedrooms):
+        self.bedrooms = newNumBedrooms
 
     def exportData(self):
         data =  {
@@ -64,9 +77,12 @@ class Property:
             'sharing_number': self.sharing,
             'duration': self.duration,    
             'extra': {
-            "start" : self.startDate,
-            'description': self.description,
-            'payment_interval': self.interval
+                "start" : self.startDate,
+                'description': self.description,
+                'payment_interval': self.interval,
+                'bathroom_type': self.bathroom,
+                "bedrooms": self.bedrooms,
+                'property_type': self.propertyType
                 }
             }
         return data
@@ -112,10 +128,23 @@ class PropertyParser:
             return [price, "Month"]
         else:
             return [price, "Week"]
+        
+    def setOwnerOccupied(self, data):
+        if data == "No" or data == "no":
+            return False
+        else:
+            return True
+    
+    def cleanDescription(self, rawDescription):
+        rawDescription = rawDescription.replace("Description", "")
+        clean = re.sub("/[^A-Za-z0-9 ]/", "", rawDescription)
+        return clean.replace("\n", "")
+
 
     def exportProperties(self, newPropetyURLs):
         priceRegex = re.compile("^TitleBlock__Price")
         roomInfoRegex = re.compile("^TitleBlock__CardInfo")
+        overViewRegex = re.compile("^styles__InfoSection")
         for url in newPropetyURLs:
             currProperty = Property()
             currProperty.setAddress(self.parseURLAddress(url))
@@ -137,10 +166,36 @@ class PropertyParser:
                     elif child['data-testid'] == 'beds':
                         currProperty.setRoomType(child.text)
                     elif child['data-testid'] == 'baths':
-                        bathType = child.text
+                        currProperty.setBathroom(child.text)
                     elif child['data-testid'] == 'property-type':
-                        propertyType = child.text
-                continue
+                        currProperty.setPropertyType(child.text)
+                overviewLists = soup.find("ul", attrs={'class': overViewRegex}).findChildren()
+                for child in overviewLists:
+                    if child.name =="li":
+                        rawText = child.text.replace(" ", "")
+                        rawData = rawText.split(":")
+                        title = rawData[0]
+                        data = rawData[1]
+                        if title == "BedroomsAvailable":
+                            currProperty.setNumBedrooms(int(re.sub('[^0-9]','', data)))
+                        elif title == "AvailableFrom":
+                            currProperty.setStartDate(data)
+                        elif title == "AvailableFor":
+                            currProperty.setDuration(data)
+                        elif title == "Sharingwith":
+                            currProperty.setSharing(int(re.sub('[^0-9]','', data)))
+                        elif title == "OwnerOccupied":
+                            currProperty.setOccupied(self.setOwnerOccupied(data))
+                        elif title == "Preferences":
+                            currProperty.setPreferences(data)
+                        else:
+                            print("Unknown Preferences!")
+                description = soup.find("div", attrs={'data-testid': "description"}).text
+                currProperty.setDescription(self.cleanDescription(description))
+                
+                
+
+                
     
 
 ### DRIVER CODE
