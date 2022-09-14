@@ -1,4 +1,3 @@
-from tkinter import N
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -67,25 +66,29 @@ class Property:
         self.bedrooms = newNumBedrooms
 
     def exportData(self):
-        data =  {
-            'id': self.id, ##get from parsing the URL
-            'url': self.url,
-            'price': self.price,
-            'address': self.address,
-            'owner_occupied': self.occupied,
-            'preferences' : self.preferences,
-            'sharing_number': self.sharing,
-            'duration': self.duration,    
-            'extra': {
-                "start" : self.startDate,
-                'description': self.description,
-                'payment_interval': self.interval,
-                'bathroom_type': self.bathroom,
-                "bedrooms": self.bedrooms,
-                'property_type': self.propertyType
+        if self.id == None or self.id == "":
+            print("property needs an ID!")
+        else:
+            data =  {
+                '_id': self.id, ##get from parsing the URL
+                'url': self.url,
+                'price': self.price,
+                'address': self.address,
+                'owner_occupied': self.occupied,
+                'preferences' : self.preferences,
+                'sharing_number': self.sharing,
+                'duration': self.duration,    
+                'extra': {
+                    "start" : self.startDate,
+                    'description': self.description,
+                    'payment_interval': self.interval,
+                    'bathroom_type': self.bathroom,
+                    "bedrooms": self.bedrooms,
+                    'property_type': self.propertyType
+                    }
                 }
-            }
-        return data
+            return data
+               
 
 class PropertyParser:
     def __init__(self, location, priceFrom, priceTo) -> None:
@@ -136,8 +139,7 @@ class PropertyParser:
             return True
     
     def cleanDescription(self, rawDescription):
-        rawDescription = rawDescription.replace("Description", "")
-        clean = re.sub("/[^A-Za-z0-9 ]/", "", rawDescription)
+        clean = re.sub("/[^A-Za-z0-9 ]/", "",  rawDescription.replace("Description", ""))
         return clean.replace("\n", "")
 
 
@@ -148,7 +150,7 @@ class PropertyParser:
         for url in newPropetyURLs:
             currProperty = Property()
             currProperty.setAddress(self.parseURLAddress(url))
-            currProperty.setAddress(self.parseUrlID(url))
+            currProperty.setID(self.parseUrlID(url))
             fullURL = "https://www.daft.ie{}".format(url)
             currProperty.setURL(fullURL)
             resp = requests.get(fullURL)
@@ -192,11 +194,8 @@ class PropertyParser:
                             print("Unknown Preferences!")
                 description = soup.find("div", attrs={'data-testid': "description"}).text
                 currProperty.setDescription(self.cleanDescription(description))
+                data = currProperty.exportData()
                 
-                
-
-                
-    
 
 ### DRIVER CODE
 parser = PropertyParser("dublin", 500, 1000)
