@@ -95,7 +95,7 @@ class PropertyParser:
         self.priceFrom = str(priceFrom)
         self.priceTo = str(priceTo)
         self.location = str(location)
-        self.newProperties = []
+        self.properties = []
 
     ### returns url of all current rental rooms in duration
     def pingDaft(self):
@@ -107,9 +107,9 @@ class PropertyParser:
             soup = BeautifulSoup(html_doc, 'html.parser')
             content = soup.find_all("a", href=True)
             diff = [link['href'] for link in content if re.match(propertysURLRegex, link['href'])]
-            #TODO database crap...
             if len(diff) > 0:
                 self.exportProperties(diff)
+                return self.properties
         else:
             print("bad daft url!")
 
@@ -144,6 +144,7 @@ class PropertyParser:
 
 
     def exportProperties(self, newPropetyURLs):
+        self.properties = []
         priceRegex = re.compile("^TitleBlock__Price")
         roomInfoRegex = re.compile("^TitleBlock__CardInfo")
         overViewRegex = re.compile("^styles__InfoSection")
@@ -195,13 +196,17 @@ class PropertyParser:
                 description = soup.find("div", attrs={'data-testid': "description"}).text
                 currProperty.setDescription(self.cleanDescription(description))
                 data = currProperty.exportData()
+                self.properties.append(data)
                 
 
 ### DRIVER CODE
-parser = PropertyParser("dublin", 500, 1000)
-parser.pingDaft()
-
-### sample json object to store in database..
+def pingPropertys():
+    county = input("Please enter the county to search rooms for (lowercase): ")
+    priceLow = int(input("Please enter lowest room price: "))
+    priceHigh = int(input("Please enter highest room price: "))
+    parser = PropertyParser(county, priceLow, priceHigh)
+    propeties = parser.pingDaft()
+    return propeties
 
 
 
