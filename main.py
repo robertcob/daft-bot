@@ -1,27 +1,29 @@
-from scraper.parseResults import pingPropertys
 from daftdatabase.db import createInstance
-from chatbots.discord import setupDiscord
+from scraper.daftLibrary import executeDaft
+from chatbots.discordMessageSend import setupDiscord
 import time
 import pymongo
 
 if __name__ == "__main__":
     db_intsance = createInstance()
     discordBot = setupDiscord()
+    daft = executeDaft()
     while True:
-        newProperties = pingPropertys()
+        listings = daft.setListings()
+        newProperties = daft.exportListings(listings)
         for property in newProperties:
             try:
                 db_intsance.insertProperty(property)
                 discordBot.createMessage(property)
-                if not property["owner_occupied"]:
-                    discordBot.sendMessage()
-                    db_intsance.numberOfDocuments()
-                    time.sleep(2)
+                discordBot.sendMessage()
+                db_intsance.numberOfDocuments()
+                time.sleep(2)
             except pymongo.errors.DuplicateKeyError:
                 print("property already inserted!")
                 continue
-            except:
-                break
+            except Exception as e:
+                print(e)
+                raise
         time.sleep(15)
         
             

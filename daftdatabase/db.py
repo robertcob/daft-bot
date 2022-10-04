@@ -20,7 +20,6 @@ class Database:
     
     def insertProperty(self, property):
         id = self.col.insert_one(property)
-        print("entered property with id {id} into properties db".format(id))
     
     def findProperty(self, id):
         result = self.col.find_one({"_id": id})
