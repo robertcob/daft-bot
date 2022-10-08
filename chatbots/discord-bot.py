@@ -1,8 +1,13 @@
-import requests
+import os
 import discord.ext
 from discord.ui import Button, View
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+import time
 
-apiToken = input("Please enter discord API Token: ")
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
@@ -15,34 +20,58 @@ async def on_message(message):
     print("activated")
     print(message.content)
     if message.content.startswith('NEW PROPERTY!'):
+        rawLink = message.split("\n")[3]
+        url = rawLink.split(' ')[4]
+        print("PROPERTY URL -> " + url)
         button = Button(label="Apply to property?", style=discord.ButtonStyle.blurple, emoji="🏠")
         async def button_callback(interaction):
-            await interaction.response.send_message("hi")
+            interaction.response.defer()
+            success = send_message(url)
+            if success:
+                print("function ran successfully")
+                interaction.edit_original_message("email sent successfully!", view=None)
+            else:
+                interaction.edit_original_message("email failed to send!")
+                button.style = discord.ButtonStyle.red
+
         button.callback = button_callback
         view = View()
         view.add_item(button)
-        await message.channel.send("this is a test response", view=view)
+        await message.channel.send("Click to apply", view=view)
 
+def send_message(propertyURL):
+    success = False
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+    authURL = "https://www.daft.ie/auth/authenticate"
+    driver.get(authURL)
+    driver.find_element(By.XPATH, value='''//*[@id="username"]''').send_keys(os.environ['DAFTEMAIL'])
+    password = driver.find_element(By.XPATH, value='''//*[@id="password"]''')
+    password.send_keys(os.environ['DAFTPASSWORD'])
+    password.send_keys(Keys.ENTER)
+    driver.get(propertyURL)
+    email_button = driver.find_element(By.XPATH, value="//button[@aria-label = 'EMAIL']")
+    # get past stupid cookie button
+    try:
+        cookie_btn = driver.find_element(By.XPATH, value="//button[@data-tracking = 'cc-accept']")
+        cookie_btn.click()
+    except NoSuchElementException:
+        pass
+    try:
+        email_button.click()
+    except ElementNotInteractableException:
+        email_button = driver.find_element(By.XPATH, value="//button[@data-tracking = 'email-btn']")
+        email_button.click()
+    
+    success = True
+    return success
+    ### do later... dont want to actually apply yet :)
+    # driver.find_element(By.XPATH, value="//input[@aria-label = 'name']").send_keys(FULLNAMEHERE)
+    # driver.find_element(By.XPATH, value="//input[@aria-label = 'email']").send_keys(EMAILHERE)
+    # driver.find_element(By.XPATH, value="//input[@aria-label = 'phone']").send_keys(PHONENUMBERHERE)
+    # driver.find_element(By.XPATH, value="//textarea[@id = 'message']").send_keys(MESSAGEHERE)
+    # driver.find_element(By.XPATH, value="//button[@aria-label = 'Send']").click()
+    # time.sleep(1)
 
-def authenticateDaft():
-    headers = {
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    "accept-language": "en-US,en;q=0.9",
-    "cache-control": "max-age=0",
-    "content-type": "application/x-www-form-urlencoded",
-    "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": "\"Windows\"",
-    "sec-fetch-dest": "document",
-    "sec-fetch-mode": "navigate",
-    "sec-fetch-site": "same-origin",
-    "sec-fetch-user": "?1",
-    "upgrade-insecure-requests": "1"
-  }
-
-    url = "https://auth.daft.ie/auth/realms/daft/login-actions/authenticate?session_code=1tEmQrYYRPvH8oxM5JFnnBHBVAlad7OHrtMSQIuGFCw&execution=8760aa85-3800-4a5f-8fba-7da1fc8df1ec&client_id=daft-web-v1&tab_id=OGwZPo1uZ0s"
-    with requests.Session() as s:
-        r = s.post(url, headers=headers, data="username=USERNAME&password=PASSWORD&rememberMe=on&webbr_fp=7a018cedd6e726fdf9d71f016bedf34c")
-        print(r.text)
-        print(r.status_code)
-
+    

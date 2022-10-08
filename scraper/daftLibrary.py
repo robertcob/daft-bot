@@ -1,3 +1,4 @@
+import os
 from daftlistings import Daft, Location, SearchType, SortType
 from geopy.geocoders import Nominatim
 
@@ -73,6 +74,10 @@ def inputOwnerOccupied():
         return False
         
 def executeDaft():
+    email = input("Please enter email associated with daft account ")
+    passkey = input("Please enter password associated with daft account ")
+    os.environ['DAFTEMAIL'] = email
+    os.environ['DAFTPASSWORD'] = passkey
     county = input("Please enter the county to search rooms for: ")
     priceLow = int(input("Please enter lowest room price: "))
     priceHigh = int(input("Please enter highest room price: "))

@@ -23,7 +23,7 @@ class Discord:
         barrier = "##########################"
         cleanDesc = propertyObj['extra']['description']
         
-        message = '''NEW PROPERTY! 🏠  \n- Property price 💸: %d\n- Room for rent in %s\n- Property Publish Date ⏰: %s\n- Type of bedroom 🚽: %s\n\n- Description of property:\n %s\n%s\n%s\n'''%(int(propertyObj['price']), propertyObj['address'],
+        message = '''NEW PROPERTY! 🏠  \n- Property price 💸: %d\n- Room for rent in %s\n- Link To Property %s\n- Property Publish Date ⏰: %s\n- Type of bedroom 🚽: %s\n\n- Description of property:\n %s\n%s\n%s\n'''%(int(propertyObj['price']), propertyObj['address'], propertyObj['url'],
          propertyObj['extra']['publish_date'], propertyObj['extra']['bedrooms'], cleanDesc, barrier, barrier)
         self.setMessage(message)
     
