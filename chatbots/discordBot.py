@@ -87,5 +87,6 @@ def applyToProperty(propertyURL):
     # time.sleep(1)
 
 def run(apiToken):
+    print("\n")
     client.run(apiToken)
     

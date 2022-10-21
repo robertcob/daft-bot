@@ -30,7 +30,7 @@ class Discord:
 
 def setupDiscord():
     token = input("Please input discord api key: ")
-    channel = input("Please input channel url: \n")
+    channel = input("Please input channel url: ")
     os.environ['DISCORDSECRET'] = token
     discord = Discord(token, channel)
     return discord
