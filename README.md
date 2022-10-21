@@ -16,7 +16,7 @@ pip install -r requirements.txt
 python3 main.py
 ```
 ### Parameters
-- discord bot api key, you can grab one here with [here](https://discord.com/login?redirect_to=%2Fdevelopers%2Fapplications)
+- discord bot api key, you can grab one [here](https://discord.com/login?redirect_to=%2Fdevelopers%2Fapplications)
 - channel url (to post messages to)
 - daft account email/password to apply
 - county in Ireland to apply to
