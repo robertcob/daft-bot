@@ -1,30 +1,20 @@
 import requests
 import json
+import os
 class Discord:
-    def __init__(self, token) -> None:
+    def __init__(self, token, channel) -> None:
         self.token = token
         self.message = None
-        self.channel = "https://discord.com/api/v9/channels/1023308481970835567/messages"
+        self.channel = channel
     
     def setMessage(self, newMessage) -> None:
         self.message = newMessage
-    
-    def cleanDescription(self, rawDesc):
-        n = 121
-        outputStr = ""
-        clean = [rawDesc[i:i + n] for i in range(0, len(rawDesc), n)]
-        for line in clean:
-            outputStr += "\t\t"
-            outputStr += line
-            outputStr += "\n"
-        return outputStr
 
     def createMessage(self, propertyObj):
         barrier = "##########################"
-        cleanDesc = propertyObj['extra']['description']
         
-        message = '''NEW PROPERTY! 🏠  \n- Property price 💸: %d\n- Room for rent in %s\n- Link To Property %s\n- Property Publish Date ⏰: %s\n- Type of bedroom 🚽: %s\n\n- Description of property:\n %s\n%s\n%s\n'''%(int(propertyObj['price']), propertyObj['address'], propertyObj['url'],
-         propertyObj['extra']['publish_date'], propertyObj['extra']['bedrooms'], cleanDesc, barrier, barrier)
+        message = '''NEW PROPERTY! 🏠  \n- Property price 💸: %d\n- Room for rent in %s\n- Link To Property %s\n- Property Publish Date ⏰: %s\n- Type of bedroom 🚽: %s\n\n- Description of property:\n %s\n%s\n'''%(int(propertyObj['price']), propertyObj['address'], propertyObj['url'],
+         propertyObj['extra']['publish_date'], propertyObj['extra']['bedrooms'], barrier, barrier)
         self.setMessage(message)
     
     def sendMessage(self):
@@ -40,5 +30,7 @@ class Discord:
 
 def setupDiscord():
     token = input("Please input discord api key: ")
-    discord = Discord(token)
+    channel = input("Please input channel url: \n")
+    os.environ['DISCORDSECRET'] = token
+    discord = Discord(token, channel)
     return discord

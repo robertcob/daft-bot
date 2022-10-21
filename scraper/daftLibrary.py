@@ -1,6 +1,5 @@
 import os
 from daftlistings import Daft, Location, SearchType, SortType
-from geopy.geocoders import Nominatim
 
 class DaftListings:
     def __init__(self, location, lowPrice, highPrice, ownerOccupied) -> None:
@@ -30,12 +29,6 @@ class DaftListings:
         except:
             print("failed to find location, tool only searches for Dublin, Cork, Galway, Wicklow, Louth, Meath and Kildare")
 
-    def setAddress(self, longitude, latitude):
-        geolocator = Nominatim(user_agent="geoapiExercises")
-        location = geolocator.geocode(latitude+","+longitude)
-        return location[0]
-
-
     def setListings(self):
         daft = Daft()
         daft.set_location(self.location)
@@ -53,11 +46,10 @@ class DaftListings:
                 "_id": str(property.id), ##get from parsing the URL
                 "url": property.daft_link,
                 "price": property.monthly_price,
-                "address": self.setAddress(str(property.longitude), str(property.latitude)),
+                "address": property.title,
                 "extra": {
                     "agent_id" : property.agent_id,
                     "publish_date" : property.publish_date,
-                    "description": property.title,
                     "bedrooms": property.bedrooms,
                     "property_type": property.category
                     }

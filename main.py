@@ -1,26 +1,37 @@
-from daftdatabase.db import createInstance
 from scraper.daftLibrary import executeDaft
 from chatbots.discordMessageSend import setupDiscord
 import time
-import pymongo
+import os
+import pickle as pkl
+from chatbots.discordBot import run
+import threading
+import time
+
+PATH = os.path.dirname(os.path.abspath(__file__))
+
+def get_cache(filepath=os.path.join(PATH, 'cache.pkl')):
+    if os.path.exists(filepath):
+        with open(filepath, mode='rb') as fd:
+            cache = pkl.load(fd)
+    else:
+        cache = set()
+    return cache
 
 if __name__ == "__main__":
-    db_intsance = createInstance()
     discordBot = setupDiscord()
+    discordThread = threading.Thread(target=run, args=(os.environ['DISCORDSECRET'],))
+    discordThread.start()
     daft = executeDaft()
+    cache = get_cache()
     while True:
         listings = daft.setListings()
-        newProperties = daft.exportListings(listings)
+        newProperties = [x for x in daft.exportListings(listings) if x['_id'] not in cache]
         for property in newProperties:
             try:
-                db_intsance.insertProperty(property)
                 discordBot.createMessage(property)
                 discordBot.sendMessage()
-                db_intsance.numberOfDocuments()
-                time.sleep(2)
-            except pymongo.errors.DuplicateKeyError:
-                print("property already inserted!")
-                continue
+                time.sleep(3)
+                cache.add(property['_id'])
             except Exception as e:
                 print(e)
                 raise
