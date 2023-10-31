@@ -1,6 +1,6 @@
 # DaftBot
 
-DaftBotis a discord bot written in Python for easily applying to properties (for local). 
+DaftBot is a discord bot written in Python for easily applying to properties (for local). 
 
 ## Installation
 
